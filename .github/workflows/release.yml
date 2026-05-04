@@ -1,0 +1,32 @@
+name: Build and Release Font
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g. v0.1.0)'
+        required: true
+        type: string
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install FontForge
+        run: sudo apt-get update && sudo apt-get install -y fontforge python3-fontforge
+
+      - name: Generate font files
+        run: python3 generate_font.py
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.version }}
+          name: ${{ inputs.version }}
+          files: |
+            build/RoboTacticsDisplay-ThinItalic.ttf
+            build/RoboTacticsDisplay-ThinItalic.otf
+            build/RoboTacticsDisplay-ThinItalic.woff2
+          generate_release_notes: true
