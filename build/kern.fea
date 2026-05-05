@@ -1,0 +1,15 @@
+feature kern {
+  lookup kern_pairs {
+    lookupflag 0;
+    pos o b -18;
+    pos u p -24;
+    pos c t 8;
+    pos S u -28;
+    pos t a -15;
+    pos t i -15;
+    pos i c -12;
+    pos a c -12;
+    pos c S -15;
+    pos e r -12;
+  } kern_pairs;
+} kern;
