@@ -35,8 +35,36 @@ BUILD_DIR = os.path.join(SCRIPT_DIR, "build")
 
 # Letter definitions: (filename, unicode_codepoint, is_uppercase, has_descender)
 # has_descender is optional (defaults to False)
+# Uppercase reuses the same SVG, scaled to cap height instead of x-height.
 LETTERS = [
+    # Uppercase (cap height = 700)
     ("Letter_S.svg", ord('S'), True),
+    ("Letter_a.svg", ord('A'), True),
+    ("Letter_b.svg", ord('B'), True),
+    ("Letter_c.svg", ord('C'), True),
+    ("Letter_d.svg", ord('D'), True),
+    ("Letter_e.svg", ord('E'), True),
+    ("Letter_f.svg", ord('F'), True),
+    ("Letter_g.svg", ord('G'), True),
+    ("Letter_h.svg", ord('H'), True),
+    ("Letter_i.svg", ord('I'), True),
+    ("Letter_j.svg", ord('J'), True),
+    ("Letter_k.svg", ord('K'), True),
+    ("Letter_l.svg", ord('L'), True),
+    ("Letter_m.svg", ord('M'), True),
+    ("Letter_n.svg", ord('N'), True),
+    ("Letter_o.svg", ord('O'), True),
+    ("Letter_p.svg", ord('P'), True),
+    ("Letter_q.svg", ord('Q'), True),
+    ("Letter_r.svg", ord('R'), True),
+    ("Letter_t.svg", ord('T'), True),
+    ("Letter_u.svg", ord('U'), True),
+    ("Letter_v.svg", ord('V'), True),
+    ("Letter_w.svg", ord('W'), True),
+    ("Letter_x.svg", ord('X'), True),
+    ("Letter_y.svg", ord('Y'), True),
+    ("Letter_z.svg", ord('Z'), True),
+    # Lowercase (x-height = 570)
     ("Letter_a.svg", ord('a'), False),
     ("Letter_b.svg", ord('b'), False),
     ("Letter_c.svg", ord('c'), False),
@@ -90,7 +118,15 @@ SHAPE_CATEGORIES = {
 
 # Map each letter to its category
 LETTER_CATEGORIES = {
-    'S': 'round',
+    # Uppercase
+    'A': 'mixed', 'B': 'straight', 'C': 'round', 'D': 'straight',
+    'E': 'round', 'F': 'open', 'G': 'mixed', 'H': 'straight',
+    'I': 'straight', 'J': 'open', 'K': 'straight', 'L': 'straight',
+    'M': 'mixed', 'N': 'straight', 'O': 'round', 'P': 'mixed',
+    'Q': 'mixed', 'R': 'open', 'S': 'round', 'T': 'open',
+    'U': 'mixed', 'V': 'diagonal', 'W': 'diagonal', 'X': 'diagonal',
+    'Y': 'diagonal', 'Z': 'diagonal',
+    # Lowercase
     'a': 'mixed', 'b': 'straight', 'c': 'round', 'd': 'straight',
     'e': 'round', 'f': 'open', 'g': 'mixed', 'h': 'straight',
     'i': 'straight', 'j': 'open', 'k': 'straight', 'l': 'straight',
@@ -208,7 +244,7 @@ def create_font():
         sidebearing = get_sidebearing(letter)
         dx = sidebearing - xmin
         if is_upper:
-            # Center S vertically on the middle of x-height
+            # Center vertically on the middle of x-height
             lc_center = X_HEIGHT / 2.0
             dy = (lc_center - glyph_height / 2.0) - ymin
         elif has_descender:
