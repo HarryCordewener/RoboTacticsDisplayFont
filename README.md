@@ -1,6 +1,6 @@
 # RoboTacticsDisplay — Thin Italic
 
-<img src="logo.svg" alt="Logo" height="120">
+<img src="logo.svg" alt="Logo">
 
 A display font in the spirit of popular mecha game title screens — bold angles,
 thin italic strokes, and metallic styling reminiscent of classic tactical combat

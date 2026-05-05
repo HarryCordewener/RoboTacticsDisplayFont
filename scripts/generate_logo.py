@@ -18,7 +18,7 @@ def generate_svg():
         font_b64 = base64.b64encode(f.read()).decode()
 
     svg = f'''<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="415 -60 390 340">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="436 -47 348 308">
   <defs>
     <style>
       @font-face {{
