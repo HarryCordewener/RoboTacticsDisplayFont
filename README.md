@@ -9,6 +9,10 @@ franchises.
 > **⚠️ Work in progress** — Letterforms are still in flux. Glyphs may change
 > shape, spacing, or be added/removed between versions.
 
+## Supported Lettering
+
+<img src="glyphs.svg" alt="Glyph Table" width="100%">
+
 ## Installation
 
 1. Copy `build/RoboTacticsDisplay-ThinItalic.ttf` to your system or project
@@ -26,19 +30,20 @@ run `scripts/generate_logo.py` for an example.
 Requires [FontForge](https://fontforge.org/) with Python bindings:
 
 ```bash
-python3 generate_font.py      # letters
-python3 generate_symbols.py   # digits & symbols
+python3 scripts/generate_font.py      # letters
+python3 scripts/generate_symbols.py   # digits & symbols
 ```
 
 Output lands in `build/`.
 
-## Logo generation
+## Logo & glyph table generation
 
 ```bash
 python3 scripts/generate_logo.py
+python3 scripts/generate_glyphs.py
 ```
 
-Produces `logo.svg` and `logo.png` (requires `rsvg-convert` or Inkscape).
+Produces `logo.svg` and `glyphs.svg` (both embed the font as base64).
 
 ## License
 

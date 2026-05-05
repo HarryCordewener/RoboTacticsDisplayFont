@@ -30,8 +30,9 @@ DESCENT = 200  # FontForge uses positive descent
 
 # Source SVG directory (relative to this script)
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-SVG_DIR = os.path.join(SCRIPT_DIR, "glyphs")
-BUILD_DIR = os.path.join(SCRIPT_DIR, "build")
+REPO_ROOT = os.path.dirname(SCRIPT_DIR)
+SVG_DIR = os.path.join(REPO_ROOT, "glyphs")
+BUILD_DIR = os.path.join(REPO_ROOT, "build")
 
 # Letter definitions: (filename, unicode_codepoint, is_uppercase, has_descender)
 # has_descender is optional (defaults to False)

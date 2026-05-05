@@ -20,7 +20,8 @@ import os
 import sys
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-BUILD_DIR = os.path.join(SCRIPT_DIR, "build")
+REPO_ROOT = os.path.dirname(SCRIPT_DIR)
+BUILD_DIR = os.path.join(REPO_ROOT, "build")
 
 # Design parameters in font units
 X_HEIGHT = 570
