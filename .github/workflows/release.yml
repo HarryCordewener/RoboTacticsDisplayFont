@@ -18,7 +18,9 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y fontforge python3-fontforge
 
       - name: Generate font files
-        run: python3 generate_font.py
+        run: |
+          python3 scripts/generate_font.py
+          python3 scripts/generate_symbols.py
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
