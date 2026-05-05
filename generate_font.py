@@ -176,11 +176,14 @@ def create_font():
     font.descent = DESCENT
 
     # OS/2 table metrics
-    font.os2_typoascent = ASCENT
-    font.os2_typodescent = -DESCENT
+    font.os2_typoascent = 710
+    font.os2_typodescent = -10
     font.os2_typolinegap = 0
-    font.os2_winascent = ASCENT
-    font.os2_windescent = DESCENT
+    font.os2_winascent = 710
+    font.os2_windescent = 10
+    font.hhea_ascent = 710
+    font.hhea_descent = -10
+    font.hhea_linegap = 0
     font.os2_xheight = X_HEIGHT
     font.os2_capheight = CAP_HEIGHT
 
