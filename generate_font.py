@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
 Generate RoboTacticsDisplay font from hand-traced SVG letterforms.
-Uses FontForge Python bindings to import SVGs with proper typographic metrics.
+Uses FontForge Python bindings to import SVGs with proper typographic metrics,
+then applies category-based sidebearings and GPOS kern pairs via fontTools.
 
 Source: glyphs/Letter_X.svg
 Output: build/RoboTacticsDisplay-ThinItalic.{ttf,otf,woff2}
@@ -32,7 +33,8 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 SVG_DIR = os.path.join(SCRIPT_DIR, "glyphs")
 BUILD_DIR = os.path.join(SCRIPT_DIR, "build")
 
-# Letter definitions: (filename, unicode_codepoint, is_uppercase)
+# Letter definitions: (filename, unicode_codepoint, is_uppercase, has_descender)
+# has_descender is optional (defaults to False)
 LETTERS = [
     ("Letter_S.svg", ord('S'), True),
     ("Letter_a.svg", ord('a'), False),
@@ -40,17 +42,27 @@ LETTERS = [
     ("Letter_c.svg", ord('c'), False),
     ("Letter_d.svg", ord('d'), False),
     ("Letter_e.svg", ord('e'), False),
+    ("Letter_f.svg", ord('f'), False),
+    ("Letter_g.svg", ord('g'), False),
     ("Letter_h.svg", ord('h'), False),
     ("Letter_i.svg", ord('i'), False),
+    ("Letter_j.svg", ord('j'), False),
+    ("Letter_k.svg", ord('k'), False),
     ("Letter_l.svg", ord('l'), False),
+    ("Letter_m.svg", ord('m'), False),
     ("Letter_n.svg", ord('n'), False),
     ("Letter_o.svg", ord('o'), False),
     ("Letter_p.svg", ord('p'), False),
+    ("Letter_q.svg", ord('q'), False),
     ("Letter_r.svg", ord('r'), False),
+    ("Letter_s.svg", ord('s'), False),
     ("Letter_t.svg", ord('t'), False),
     ("Letter_u.svg", ord('u'), False),
     ("Letter_v.svg", ord('v'), False),
     ("Letter_w.svg", ord('w'), False),
+    ("Letter_x.svg", ord('x'), False),
+    ("Letter_y.svg", ord('y'), False),
+    ("Letter_z.svg", ord('z'), False),
 ]
 
 # SVG coordinate bounds (from AllLetters.svg analysis)
@@ -65,6 +77,49 @@ SVG_LC_TOP = 30.55   # top of lowercase
 # Target font metrics
 CAP_HEIGHT = 700     # S top in font units above baseline
 X_HEIGHT = 570       # lowercase top in font units above baseline
+
+# --- Category-based sidebearings ---
+# Shape categories determine sidebearing values for optical evenness
+SHAPE_CATEGORIES = {
+    'straight': 30,   # letters with straight vertical sides: h, l, n, d, b, k, i
+    'round': 18,      # letters with round sides: o, c, e, s
+    'open': 12,       # letters with open/angled sides: r, t, f, j
+    'diagonal': 15,   # letters with diagonal strokes: v, w, x, z, y
+    'mixed': 24,      # letters with one straight + one other: a, u, p, q, g, m
+}
+
+# Map each letter to its category
+LETTER_CATEGORIES = {
+    'S': 'round',
+    'a': 'mixed', 'b': 'straight', 'c': 'round', 'd': 'straight',
+    'e': 'round', 'f': 'open', 'g': 'mixed', 'h': 'straight',
+    'i': 'straight', 'j': 'open', 'k': 'straight', 'l': 'straight',
+    'm': 'mixed', 'n': 'straight', 'o': 'round', 'p': 'mixed',
+    'q': 'mixed', 'r': 'open', 's': 'round', 't': 'open',
+    'u': 'mixed', 'v': 'diagonal', 'w': 'diagonal', 'x': 'diagonal',
+    'y': 'diagonal', 'z': 'diagonal',
+}
+
+# --- GPOS Kern pairs ---
+# Negative = tighter, positive = looser
+KERN_PAIRS = [
+    ('o', 'b', -18),
+    ('u', 'p', -24),
+    ('c', 't', 8),
+    ('S', 'u', -28),
+    ('t', 'a', -15),
+    ('t', 'i', -15),
+    ('i', 'c', -12),
+    ('a', 'c', -12),
+    ('c', 'S', -15),
+    ('e', 'r', -12),
+]
+
+
+def get_sidebearing(letter):
+    """Get the sidebearing for a letter based on its shape category."""
+    cat = LETTER_CATEGORIES.get(letter, 'straight')
+    return SHAPE_CATEGORIES[cat]
 
 
 def create_font():
@@ -94,7 +149,12 @@ def create_font():
     font.os2_capheight = CAP_HEIGHT
 
     # Import each letter
-    for svg_file, codepoint, is_upper in LETTERS:
+    for entry in LETTERS:
+        if len(entry) == 4:
+            svg_file, codepoint, is_upper, has_descender = entry
+        else:
+            svg_file, codepoint, is_upper = entry
+            has_descender = False
         svg_path = os.path.join(SVG_DIR, svg_file)
         if not os.path.exists(svg_path):
             print(f"  WARNING: {svg_path} not found, skipping")
@@ -110,12 +170,7 @@ def create_font():
         print(f"  Imported {letter} from {svg_file}")
 
         # After import, FontForge places the glyph based on SVG coordinates.
-        # We need to scale and position it properly.
-        #
         # The SVG y-axis is flipped by FontForge on import (SVG y-down → font y-up).
-        # So SVG bottom (81.55) becomes font y=0-ish area, SVG top (29.47) becomes high.
-        #
-        # Let's check the bounding box after import and adjust.
         bbox = glyph.boundingBox()  # (xmin, ymin, xmax, ymax) in font units
         if bbox == (0, 0, 0, 0):
             print(f"    WARNING: empty glyph for {letter}")
@@ -135,7 +190,12 @@ def create_font():
 
         # Scale to target height
         if glyph_height > 0:
-            scale_factor = target_height / glyph_height
+            if has_descender:
+                # Scale so x-height portion = X_HEIGHT (descender hangs below)
+                xheight_ratio = 51.001 / 68.896
+                scale_factor = target_height / (glyph_height * xheight_ratio)
+            else:
+                scale_factor = target_height / glyph_height
             glyph.transform([scale_factor, 0, 0, scale_factor, 0, 0])
 
             # Recalculate bbox after scale
@@ -144,14 +204,16 @@ def create_font():
             glyph_height = ymax - ymin
             glyph_width = xmax - xmin
 
-        # Position: xmin = sidebearing, vertical depends on case
-        sidebearing = 30
+        # Position: category-based sidebearing, vertical depends on case
+        sidebearing = get_sidebearing(letter)
         dx = sidebearing - xmin
         if is_upper:
-            # Center the S vertically on the middle of x-height
-            # Lowercase center = X_HEIGHT / 2, so S sits from (center - h/2) to (center + h/2)
+            # Center S vertically on the middle of x-height
             lc_center = X_HEIGHT / 2.0
             dy = (lc_center - glyph_height / 2.0) - ymin
+        elif has_descender:
+            # Position so top of glyph = X_HEIGHT (descender hangs below baseline)
+            dy = X_HEIGHT - ymax
         else:
             dy = 0 - ymin  # sit on baseline
         glyph.transform([1, 0, 0, 1, dx, dy])
@@ -159,7 +221,7 @@ def create_font():
         # Set advance width (glyph width + sidebearings on both sides)
         glyph.width = int(glyph_width + sidebearing * 2)
 
-        print(f"    Final: width={glyph.width}, height={target_height}, scale={scale_factor:.3f}")
+        print(f"    Final: width={glyph.width}, sidebearing={sidebearing}, scale={scale_factor:.3f}")
 
     # Add .notdef and space
     notdef = font.createChar(-1, ".notdef")
@@ -194,9 +256,58 @@ def create_font():
 
     font.close()
 
+    return ttf_path
+
+
+def apply_kerning(ttf_path):
+    """Apply GPOS kern pairs to the generated TTF using fontTools."""
+    from fontTools.ttLib import TTFont
+    from fontTools.feaLib.builder import addOpenTypeFeatures
+    import tempfile
+
+    # Build .fea content
+    fea_lines = [
+        "feature kern {",
+        "  lookup kern_pairs {",
+        "    lookupflag 0;",
+    ]
+    for left, right, value in KERN_PAIRS:
+        left_name = "S" if left == 'S' else left
+        right_name = "S" if right == 'S' else right
+        fea_lines.append(f"    pos {left_name} {right_name} {value};")
+    fea_lines.append("  } kern_pairs;")
+    fea_lines.append("} kern;")
+    fea_content = "\n".join(fea_lines)
+
+    # Write temp .fea file and apply
+    fea_path = os.path.join(BUILD_DIR, "kern.fea")
+    with open(fea_path, 'w') as f:
+        f.write(fea_content)
+
+    font = TTFont(ttf_path)
+    addOpenTypeFeatures(font, fea_path)
+    font.save(ttf_path)
+    font.close()
+
+    print(f"\n  Applied {len(KERN_PAIRS)} kern pairs via GPOS")
+    print(f"  Feature file: {fea_path}")
+
+
+def install_font(ttf_path):
+    """Install font to ~/.local/share/fonts for system use."""
+    import shutil
+    dest_dir = os.path.expanduser("~/.local/share/fonts")
+    os.makedirs(dest_dir, exist_ok=True)
+    dest = os.path.join(dest_dir, os.path.basename(ttf_path))
+    shutil.copy2(ttf_path, dest)
+    os.system("fc-cache -f")
+    print(f"  Installed to: {dest}")
+
 
 if __name__ == "__main__":
     print(f"Generating {FONT_FAMILY} {STYLE_NAME}...")
     print(f"SVG source: {SVG_DIR}")
     print()
-    create_font()
+    ttf_path = create_font()
+    apply_kerning(ttf_path)
+    install_font(ttf_path)
